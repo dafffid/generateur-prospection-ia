@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Message de Prospection IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom, #e8e8e8, #f5f5f5);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .generate-btn:hover {
+            background: #1976D2;
+        }
+
+        .response-section {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .response-title {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .response-box {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #374151;
+            font-size: 15px;
+        }
+
+        .copy-btn {
+            padding: 10px 24px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+        }
+
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Générateur de Message de Prospection IA</h1>
+        
+        <div class="input-group">
+            <label for="linkedin-url">URL du profil LinkedIn :</label>
+            <input type="text" id="linkedin-url" placeholder="https://www.linkedin.com/in/baptiste-mangeot/" value="https://www.linkedin.com/in/baptiste-mangeot/">
+        </div>
+
+        <button class="generate-btn" onclick="generateMessage()">Générer la réponse avec l'IA</button>
+
+        <div class="response-section">
+            <div class="response-title">Réponse de l'IA :</div>
+            <div class="response-box" id="response-text">
+                Salut Baptiste,<br><br>
+                J'ai vu que tu aides déjà les indépendants à gagner plusieurs heures chaque semaine grâce à l'automatisation. Je pense qu'on peut aller encore plus loin pour te faire gagner du temps, fluidifier tes process et libérer de l'énergie pour développer ton activité.<br><br>
+                Partant pour un rapide échange de 20 minutes ? Je m'adapte à tes dispos !<br><br>
+                À bientôt,<br>
+                Meydeey
+            </div>
+            <button class="copy-btn" onclick="copyText()">Copier le texte</button>
+        </div>
+    </div>
+
+    <script>
+        // Récupérer l'URL du webhook n8n depuis les paramètres de l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const webhookUrl = urlParams.get('webhookUrl') || 'https://symbotis.app.n8n.cloud/webhook-test/path1';
+
+        async function generateMessage() {
+            const responseBox = document.getElementById('response-text');
+            const linkedinUrl = document.getElementById('linkedin-url').value;
+            
+            if (!linkedinUrl) {
+                alert('Veuillez entrer une URL LinkedIn');
+                return;
+            }
+
+            // Vérifier que l'URL du webhook est configurée
+            if (webhookUrl === 'VOTRE_WEBHOOK_N8N_URL') {
+                alert('Veuillez configurer l\'URL du webhook n8n dans l\'URL de la page : ?webhookUrl=VOTRE_URL');
+                return;
+            }
+
+            console.log('URL du webhook:', webhookUrl);
+            console.log('LinkedIn URL à envoyer:', linkedinUrl);
+
+            responseBox.innerHTML = '<div class="loading">Génération en cours...</div>';
+            
+            try {
+                const payload = {
+                    linkedinUrl: linkedinUrl
+                };
+                
+                console.log('Payload envoyé:', payload);
+                
+                // Appel au webhook n8n en POST
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('Statut de la réponse:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Erreur du serveur:', errorText);
+                    throw new Error(`Erreur ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Données reçues de n8n:', data);
+                
+                // Afficher le message généré (le champ doit correspondre à ce que renvoie n8n)
+                const generatedMessage = data.message || data.response || 'Aucun message généré';
+                responseBox.innerHTML = generatedMessage.replace(/\n/g, '<br>');
+                
+            } catch (error) {
+                console.error('Erreur complète:', error);
+                responseBox.innerHTML = `<div style="color: #ef4444;">Erreur lors de la génération: ${error.message}<br><br>Vérifiez la console (F12) pour plus de détails.</div>`;
+            }
+        }
+
+        function copyText() {
+            const responseText = document.getElementById('response-text').innerText;
+            navigator.clipboard.writeText(responseText).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copié !';
+                btn.style.background = '#059669';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#10b981';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
