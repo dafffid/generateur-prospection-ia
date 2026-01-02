@@ -154,7 +154,10 @@
     <script>
         // Récupérer l'URL du webhook n8n depuis les paramètres de l'URL
         const urlParams = new URLSearchParams(window.location.search);
-        const webhookUrl = urlParams.get('webhookUrl') || 'https://symbotis.app.n8n.cloud/webhook-test/path1';
+        const webhookUrl = urlParams.get('webhookUrl') || 'https://symbotis.app.n8n.cloud/webhook-test/path2';
+        
+        // Utiliser un proxy CORS pour contourner le problème
+        const corsProxy = 'https://corsproxy.io/?';
 
         async function generateMessage() {
             const responseBox = document.getElementById('response-text');
@@ -183,8 +186,12 @@
                 
                 console.log('Payload envoyé:', payload);
                 
-                // Appel au webhook n8n en POST
-                const response = await fetch(webhookUrl, {
+                // Utiliser le proxy CORS pour contourner les restrictions
+                const proxyUrl = corsProxy + encodeURIComponent(webhookUrl);
+                console.log('URL avec proxy:', proxyUrl);
+                
+                // Appel au webhook n8n via le proxy CORS
+                const response = await fetch(proxyUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -204,12 +211,25 @@
                 console.log('Données reçues de n8n:', data);
                 
                 // Afficher le message généré (le champ doit correspondre à ce que renvoie n8n)
-                const generatedMessage = data.message || data.response || 'Aucun message généré';
+                const generatedMessage = data.message || data.response || JSON.stringify(data);
                 responseBox.innerHTML = generatedMessage.replace(/\n/g, '<br>');
                 
             } catch (error) {
                 console.error('Erreur complète:', error);
-                responseBox.innerHTML = `<div style="color: #ef4444;">Erreur lors de la génération: ${error.message}<br><br>Vérifiez la console (F12) pour plus de détails.</div>`;
+                
+                // Message d'erreur plus explicite pour les problèmes CORS
+                if (error.message.includes('fetch') || error.name === 'TypeError') {
+                    responseBox.innerHTML = `<div style="color: #ef4444;">
+                        <strong>Erreur CORS persistante</strong><br><br>
+                        Le webhook n8n doit accepter les requêtes OPTIONS (preflight).<br><br>
+                        <strong>Solution :</strong><br>
+                        Dans n8n, changez "HTTP Method" de POST à ALL ou acceptez OPTIONS.<br><br>
+                        Sinon, utilisez un workflow n8n différent qui gère les requêtes CORS correctement.<br><br>
+                        Détails : ${error.message}
+                    </div>`;
+                } else {
+                    responseBox.innerHTML = `<div style="color: #ef4444;">Erreur: ${error.message}</div>`;
+                }
             }
         }
 
