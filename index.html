@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Générateur de Message de Prospection IA</title>
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +21,7 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
             border-radius: 20px;
@@ -29,18 +30,18 @@
             max-width: 600px;
             width: 100%;
         }
-        
+
         h1 {
             color: #333;
             margin-bottom: 30px;
-            font-size: 28px;
+            font-size: 26px;
             text-align: center;
         }
-        
+
         .form-group {
             margin-bottom: 25px;
         }
-        
+
         label {
             display: block;
             color: #555;
@@ -48,22 +49,20 @@
             font-weight: 600;
             font-size: 14px;
         }
-        
+
         input[type="url"] {
             width: 100%;
             padding: 15px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
-            transition: all 0.3s;
         }
-        
+
         input[type="url"]:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
-        
+
         .btn {
             width: 100%;
             padding: 15px;
@@ -74,24 +73,13 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
-        
+
         .response-section {
             margin-top: 30px;
             padding: 20px;
@@ -99,45 +87,34 @@
             border-radius: 10px;
             display: none;
         }
-        
+
         .response-section.show {
             display: block;
         }
-        
+
         .response-title {
-            color: #333;
             margin-bottom: 15px;
-            font-size: 18px;
             font-weight: 600;
         }
-        
+
         .response-content {
             background: white;
             padding: 20px;
             border-radius: 8px;
             border-left: 4px solid #667eea;
             white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 400px;
-            overflow-y: auto;
         }
-        
-        .error {
-            color: #e74c3c;
-            background: #fdecea;
-            border-left-color: #e74c3c;
-        }
-        
-        .success {
-            color: #27ae60;
-        }
-        
-        .loading {
-            text-align: center;
+
+        .response-content.loading {
             color: #667eea;
             font-style: italic;
         }
-        
+
+        .response-content.error {
+            color: #e74c3c;
+            border-left-color: #e74c3c;
+        }
+
         .copy-btn {
             margin-top: 15px;
             padding: 10px 20px;
@@ -146,131 +123,105 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .copy-btn:hover {
-            background: #229954;
+            display: none;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🤖 Générateur de Message de Prospection IA</h1>
-        
-        <form id="linkedinForm">
-            <div class="form-group">
-                <label for="linkedinUrl">URL du profil LinkedIn :</label>
-                <input 
-                    type="url" 
-                    id="linkedinUrl" 
-                    name="linkedinUrl" 
-                    placeholder="https://www.linkedin.com/in/exemple-profil/"
-                    required
-                    pattern="https://.*\.linkedin\.com/.*"
-                >
-            </div>
-            
-            <button type="submit" class="btn" id="submitBtn">
-                Générer la réponse avec l'IA
-            </button>
-        </form>
-        
-        <div class="response-section" id="responseSection">
-            <div class="response-title">Réponse de l'IA :</div>
-            <div class="response-content" id="responseContent"></div>
-            <button class="copy-btn" id="copyBtn" style="display:none;">Copier le texte</button>
-        </div>
-    </div>
 
-    <script>
-        // Configuration - Remplacez par l'URL de votre webhook N8N
-        const WEBHOOK_URL = 'https://symbotis.app.n8n.cloud/webhook-test/linkedin-scraper';
-        
-        const form = document.getElementById('linkedinForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const responseSection = document.getElementById('responseSection');
-        const responseContent = document.getElementById('responseContent');
-        const copyBtn = document.getElementById('copyBtn');
-        const linkedinInput = document.getElementById('linkedinUrl');
-        
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const linkedinUrl = linkedinInput.value.trim();
-            
-            // Validation
-            if (!linkedinUrl.includes('linkedin.com')) {
-                showError('Veuillez entrer une URL LinkedIn valide');
-                return;
-            }
-            
-            // Afficher le chargement
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Traitement en cours...';
-            responseSection.classList.add('show');
-            responseContent.className = 'response-content loading';
-            responseContent.textContent = '⏳ Scraping du profil LinkedIn et génération du message...';
-            copyBtn.style.display = 'none';
-            
-            try {
-                // Envoi de la requête au webhook N8N
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        linkedinUrl: linkedinUrl,
-                        timestamp: new Date().toISOString()
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                output.innerText = text;
-                
-                // Afficher la réponse
-                responseContent.className = 'response-content';
-                responseContent.textContent = JSON.stringify(data, null, 2);
-                copyBtn.style.display = 'block';
-                
-            } catch (error) {
-                showError(`Erreur: ${error.message}\n\nVérifiez la console (F12) pour plus de détails.`);
-                console.error('Erreur détaillée:', error);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Générer la réponse avec l\'IA';
-            }
-        });
-        
-        // Fonction pour copier le texte
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(responseContent.textContent)
-                .then(() => {
-                    const originalText = copyBtn.textContent;
-                    copyBtn.textContent = '✓ Copié !';
-                    setTimeout(() => {
-                        copyBtn.textContent = originalText;
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('Erreur de copie:', err);
-                });
-        });
-        
-        function showError(message) {
-            responseSection.classList.add('show');
-            responseContent.className = 'response-content error';
-            responseContent.textContent = message;
-            copyBtn.style.display = 'none';
+<body>
+
+<div class="container">
+    <h1>🤖 Générateur de Message de Prospection IA</h1>
+
+    <form id="linkedinForm">
+        <div class="form-group">
+            <label for="linkedinUrl">URL du profil LinkedIn</label>
+            <input
+                type="url"
+                id="linkedinUrl"
+                placeholder="https://www.linkedin.com/in/..."
+                required
+            >
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">
+            Générer la réponse avec l’IA
+        </button>
+    </form>
+
+    <div class="response-section" id="responseSection">
+        <div class="response-title">Réponse de l’IA :</div>
+        <div class="response-content" id="responseContent"></div>
+        <button class="copy-btn" id="copyBtn">Copier le texte</button>
+    </div>
+</div>
+
+<script>
+    // ⚠️ URL PROD DU WEBHOOK N8N
+    const WEBHOOK_URL = 'https://symbotis.app.n8n.cloud/webhook/linkedin-scraper';
+
+    const form = document.getElementById('linkedinForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const responseSection = document.getElementById('responseSection');
+    const responseContent = document.getElementById('responseContent');
+    const copyBtn = document.getElementById('copyBtn');
+    const linkedinInput = document.getElementById('linkedinUrl');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const linkedinUrl = linkedinInput.value.trim();
+        if (!linkedinUrl.includes('linkedin.com')) {
+            showError('Veuillez entrer une URL LinkedIn valide.');
+            return;
         }
-    </script>
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Traitement en cours...';
+
+        responseSection.classList.add('show');
+        responseContent.className = 'response-content loading';
+        responseContent.textContent = '⏳ Analyse du profil et génération du message...';
+        copyBtn.style.display = 'none';
+
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ linkedinUrl })
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur HTTP ' + response.status);
+            }
+
+            const text = await response.text();
+
+            responseContent.className = 'response-content';
+            responseContent.textContent = text;
+            copyBtn.style.display = 'inline-block';
+
+        } catch (error) {
+            showError(error.message);
+            console.error(error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Générer la réponse avec l’IA';
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(responseContent.textContent);
+        copyBtn.textContent = '✓ Copié';
+        setTimeout(() => copyBtn.textContent = 'Copier le texte', 1500);
+    });
+
+    function showError(message) {
+        responseContent.className = 'response-content error';
+        responseContent.textContent = message;
+        copyBtn.style.display = 'none';
+    }
+</script>
+
 </body>
 </html>
-
-
